@@ -2,7 +2,6 @@ import React from "react";
 import { Box } from "@material-ui/core";
 import { SenderBubble, OtherUserBubble } from "../ActiveChat";
 import moment from "moment";
-import { connect, useSelector } from "react-redux";
 
 const Messages = (props) => {
   const { messages, otherUser, userId } = props;
