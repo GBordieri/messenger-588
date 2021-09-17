@@ -80,3 +80,14 @@ export const addNewConvoToStore = (state, recipientId, message) => {
     }
   });
 };
+
+export const updateLastRead = (state, payload) => {
+  const { convoId, updateTime } = payload;
+  return state.map((convo) => {
+    if (convo.id === convoId){
+      return {...convo, lastRead: updateTime};
+    } else {
+      return convo;
+    }
+  });
+};
