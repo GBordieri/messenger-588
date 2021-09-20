@@ -38,7 +38,7 @@ class Conversations(APIView):
                 convo_dict = {
                     "id": convo.id,
                     "messages": [
-                        message.to_dict(["id", "text", "senderId", "createdAt"])
+                        message.to_dict(["id", "text", "senderId", "createdAt", "read"])
                         for message in convo.messages.all()
                     ],
                 }
@@ -59,7 +59,14 @@ class Conversations(APIView):
                 else:
                     convo_dict["otherUser"]["online"] = False
                 
-                convo_dict["lastRead"] = convo.user1ViewedAt if convo.user1.id == user_id else convo.user2ViewedAt
+                # set an unread messages property
+                convo_dict["unreadMessages"] = sum(1 for message in convo.messages.all() if user_id != message.senderId and not message.read)
+                # set last message read by other user
+                try:
+                    last_message = convo.messages.filter(senderId=user_id, read=True).latest("createdAt")
+                    convo_dict["lastRead"] = last_message.id
+                except:
+                    convo_dict["lastRead"] = None
 
                 conversations_response.append(convo_dict)
             conversations_response.sort(
@@ -71,9 +78,10 @@ class Conversations(APIView):
                 safe=False,
             )
         except Exception as e:
+            print(e)
             return HttpResponse(status=500)
 
-    def post(self, request):
+    def patch(self, request: Request):
         try:
             user = get_user(request)
 
@@ -83,17 +91,16 @@ class Conversations(APIView):
             user_id = user.id
             body = request.data
             conversation_id = body.get("conversationId")
-
             conversation = Conversation.objects.get(id=conversation_id)
-            if user_id == conversation.user1.id:
-                conversation.user1ViewedAt = timezone.now()
-                updateTime = conversation.user1ViewedAt
-            elif user_id == conversation.user2.id:
-                conversation.user2ViewedAt = timezone.now()
-                updateTime = conversation.user2ViewedAt
-            else:
+            if (user_id != conversation.user1.id) and (user_id != conversation.user2.id):
                 return HttpResponse(status=403)
-            conversation.save()
-            return JsonResponse({"time": updateTime})
+            
+            messages = Message.objects.filter(conversation_id=conversation.id)
+            for message in messages:
+                if user_id != message.senderId:
+                    message.read = True
+                    message.save()
+            return HttpResponse(status=200)
         except Exception as e:
+            print(e)
             return HttpResponse(status=500)

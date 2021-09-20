@@ -21,11 +21,11 @@ const useStyles = makeStyles((theme) => ({
 
 const Chat = (props) => {
   const classes = useStyles();
-  const { conversation } = props;
+  const { conversation, userId } = props;
   const { otherUser } = conversation;
 
   const handleClick = async (conversation) => {
-    await props.markActiveChat({otherUser: conversation.otherUser.username, conversationId: conversation.id});
+    await props.markActiveChat({curUser: userId, otherUser: conversation.otherUser.username, conversationId: conversation.id});
   };
 
   return (
@@ -37,15 +37,15 @@ const Chat = (props) => {
         sidebar={true}
       />
       <ChatContent conversation={conversation} />
-      <UnreadMessage conversation={conversation} />
+      {conversation.unreadMessages > 0 ? <UnreadMessage conversation={conversation} /> : ""}
     </Box>
   );
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    markActiveChat: (username, id) => {
-      dispatch(markActiveChat(username, id));
+    markActiveChat: (userId, otherUser, id) => {
+      dispatch(markActiveChat(userId, otherUser, id));
     }
   };
 };

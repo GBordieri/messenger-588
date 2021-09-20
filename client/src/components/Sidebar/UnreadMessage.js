@@ -32,7 +32,7 @@ const UnreadMessage = (props) => {
     return (
         <Box className={classes.root}>
             <Typography className={classes.unread}>
-                {conversation.messages.reduce(reducer, 0)}
+                {conversation.unreadMessages}
             </Typography>
         </Box>
     );

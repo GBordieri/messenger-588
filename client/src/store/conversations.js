@@ -69,10 +69,10 @@ export const addConversation = (recipientId, newMessage) => {
   };
 };
 
-export const setLastRead = (convoId, updateTime) => {
+export const setLastRead = (userId, convoId) => {
   return {
     type: SET_LAST_READ,
-    payload: { convoId, updateTime }
+    payload: {userId, convoId}
   };
 };
 

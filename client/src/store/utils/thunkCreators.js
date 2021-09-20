@@ -82,9 +82,9 @@ export const fetchConversations = () => async (dispatch) => {
 
 export const markActiveChat = (body) => async (dispatch) => {
   try {
-    const { data } = await axios.post("/api/conversations", body);
+    await axios.patch("/api/conversations", body);
     dispatch(setActiveChat(body.otherUser));
-    dispatch(setLastRead(body.conversationId, data.time))
+    dispatch(setLastRead(body.userId, body.conversationId))
   } catch (error) {
     console.log(error);
   }

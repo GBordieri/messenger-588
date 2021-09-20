@@ -13,8 +13,6 @@ class Conversation(utils.CustomModel):
     user2 = models.ForeignKey(
         User, on_delete=models.CASCADE, db_column="user2Id", related_name="+", 
     )
-    user1ViewedAt = models.DateTimeField(auto_now_add=True, auto_now=False)
-    user2ViewedAt = models.DateTimeField(auto_now_add=True, auto_now=False)
     createdAt = models.DateTimeField(auto_now_add=True, db_index=True)
     updatedAt = models.DateTimeField(auto_now=True)
 
