@@ -25,9 +25,7 @@ const useStyles = makeStyles(() => ({
 const UnreadMessage = (props) => {
     const classes = useStyles();
 
-    const { conversation, user } = props;
-    const lastRead = conversation.lastRead;
-    const reducer = (prev, cur) => prev + (cur.senderId !== user.id && cur.createdAt > lastRead ? 1 : 0);
+    const { conversation } = props;
 
     return (
         <Box className={classes.root}>
@@ -38,10 +36,4 @@ const UnreadMessage = (props) => {
     );
 };
 
-const mapeStateToProps = (state) => {
-    return {
-        user: state.user
-    };
-};
-
-export default connect(mapeStateToProps)(UnreadMessage);
+export default connect()(UnreadMessage);

@@ -95,12 +95,9 @@ class Conversations(APIView):
             if (user_id != conversation.user1.id) and (user_id != conversation.user2.id):
                 return HttpResponse(status=403)
             
-            messages = Message.objects.filter(conversation_id=conversation.id)
-            for message in messages:
-                if user_id != message.senderId:
-                    message.read = True
-                    message.save()
-            return HttpResponse(status=200)
+            Message.objects.filter(Q(conversation_id=conversation.id) & ~Q(senderId=user_id)).update(read=True)
+
+            return HttpResponse(status=204)
         except Exception as e:
             print(e)
             return HttpResponse(status=500)
