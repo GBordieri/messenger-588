@@ -6,23 +6,21 @@ from .user import User
 
 
 class Conversation(utils.CustomModel):
-
-    user1 = models.ForeignKey(
-        User, on_delete=models.CASCADE, db_column="user1Id", related_name="+"
-    )
-    user2 = models.ForeignKey(
-        User, on_delete=models.CASCADE, db_column="user2Id", related_name="+", 
+    users = models.ManyToManyField(
+        User,
+        db_column="userId",
+        related_name="conversations"
     )
     createdAt = models.DateTimeField(auto_now_add=True, db_index=True)
     updatedAt = models.DateTimeField(auto_now=True)
 
-    # find conversation given two user Ids
+    # find all conversations containing two user Ids
     def find_conversation(user1Id, user2Id):
-        # return conversation or None if it doesn't exist
+        # return conversations or None if none exist
         try:
-            return Conversation.objects.get(
-                (Q(user1__id=user1Id) | Q(user1__id=user2Id)),
-                (Q(user2__id=user1Id) | Q(user2__id=user2Id)),
+            return Conversation.objects.filter(
+                Q(users__id=user1Id),
+                Q(users__id=user2Id)
             )
         except Conversation.DoesNotExist:
             return None
