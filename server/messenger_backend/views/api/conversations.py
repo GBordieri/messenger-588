@@ -2,6 +2,7 @@ from django.contrib.auth.middleware import get_user
 from django.db.models import Max, Q
 from django.db.models.query import Prefetch
 from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
 from messenger_backend.models import Conversation, Message
 from online_users import online_users
 from rest_framework.views import APIView
@@ -37,7 +38,7 @@ class Conversations(APIView):
                 convo_dict = {
                     "id": convo.id,
                     "messages": [
-                        message.to_dict(["id", "text", "senderId", "createdAt"])
+                        message.to_dict(["id", "text", "senderId", "createdAt", "read"])
                         for message in convo.messages.all()
                     ],
                 }
@@ -57,6 +58,15 @@ class Conversations(APIView):
                     convo_dict["otherUser"]["online"] = True
                 else:
                     convo_dict["otherUser"]["online"] = False
+                
+                # set an unread messages property
+                convo_dict["unreadMessages"] = sum(1 for message in convo.messages.all() if user_id != message.senderId and not message.read)
+                # set last message read by other user
+                try:
+                    last_message = convo.messages.filter(senderId=user_id, read=True).latest("createdAt")
+                    convo_dict["lastRead"] = last_message.id
+                except:
+                    convo_dict["lastRead"] = None
 
                 conversations_response.append(convo_dict)
             conversations_response.sort(
@@ -68,4 +78,26 @@ class Conversations(APIView):
                 safe=False,
             )
         except Exception as e:
+            print(e)
+            return HttpResponse(status=500)
+
+    def patch(self, request: Request):
+        try:
+            user = get_user(request)
+
+            if user.is_anonymous:
+                return HttpResponse(status=401)
+
+            user_id = user.id
+            body = request.data
+            conversation_id = body.get("conversationId")
+            conversation = Conversation.objects.get(id=conversation_id)
+            if (user_id != conversation.user1.id) and (user_id != conversation.user2.id):
+                return HttpResponse(status=403)
+            
+            Message.objects.filter(Q(conversation_id=conversation.id) & ~Q(senderId=user_id)).update(read=True)
+
+            return HttpResponse(status=204)
+        except Exception as e:
+            print(e)
             return HttpResponse(status=500)
